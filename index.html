@@ -29,12 +29,20 @@ header p{margin:10px 0 0;opacity:.9}
 .ticket{background:#fffaf2;color:#1b1a19;border-radius:14px;padding:16px 18px;position:relative;box-shadow:0 10px 24px rgba(0,0,0,.18);
   -webkit-mask:radial-gradient(circle 9px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat;
   mask:radial-gradient(circle 9px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat}
+.ticket{display:block;width:100%;text-align:left;font:inherit;border:0;cursor:pointer}
+.ticket .air{font-size:13px;color:#6b6660;display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ticket .air b{color:#1b1a19;font-weight:700}
+.ticket .leg{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.ticket .when{font-size:13px;color:#6b6660;margin-top:2px;white-space:nowrap}
+.ticket .when b{color:#d9432c;font-size:17px;margin-left:4px}
+.ticket .edit{font-size:12px;color:#2f6f6a;white-space:nowrap}
 .ticket .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.ticket .code{font-family:"Do Hyeon",sans-serif;font-size:40px;line-height:1}
+.ticket .code{font-family:"Do Hyeon",sans-serif;font-size:32px;line-height:1}
 .ticket .sm{font-size:13px;color:#6b6660}
 .ticket .arrow{flex:1;border-top:2px dashed #d9432c;position:relative;margin:0 6px}
 .ticket .arrow::after{content:"";position:absolute;right:-2px;top:-6px;border:5px solid transparent;border-left:8px solid #d9432c}
-.ticket hr{border:0;border-top:2px dashed #e1d8cc;margin:14px -18px 12px}
+.ticket hr{border:0;border-top:2px dashed #e1d8cc;margin:12px -18px}
+.where.txt{color:var(--mute)}
 .ticket .meta{display:flex;gap:18px;flex-wrap:wrap}
 .ticket .meta b{display:block;font-size:17px;white-space:nowrap}
 main{margin-top:calc(-1 * clamp(40px,5vw,60px))}
@@ -108,11 +116,7 @@ footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px
       <div class="status" id="status">일정을 불러오는 중…</div>
       <button class="btn ghost" id="share" style="margin-top:12px;color:#fff;border-color:rgba(255,255,255,.6)">공유 링크 복사</button>
     </div>
-    <div class="ticket" aria-label="출국편">
-      <div class="row"><div><div class="code">GMP</div><div class="sm">김포</div></div><div class="arrow"></div><div style="text-align:right"><div class="code">HND</div><div class="sm">하네다</div></div></div>
-      <hr>
-      <div class="meta"><div><span class="sm">출발일</span><b>12.3 (목)</b></div><div><span class="sm">출발</span><b>07:45</b></div><div><span class="sm">귀국</span><b>12.5 (토)</b></div></div>
-    </div>
+    <button type="button" class="ticket" id="ticket" aria-label="항공편 정보, 눌러서 수정"></button>
   </div>
 </header>
 
@@ -145,7 +149,8 @@ footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px
 <dialog id="dlgItem"><form method="dialog" id="fItem">
   <h2 id="dlgItemTitle">일정 추가</h2>
   <div class="two"><label>시간<input type="time" name="time"></label><label>할 일<input name="title" required placeholder="예: 아사쿠사 산책"></label></div>
-  <label>장소 (지도 검색어)<input name="place" placeholder="예: 浅草寺 또는 Senso-ji"></label>
+  <label>장소 이름<input name="place" placeholder="예: 센소지"></label>
+  <label>구글 지도 링크<input name="link" type="url" inputmode="url" placeholder="구글 지도에서 공유 → 링크 복사 후 붙여넣기"></label>
   <label>메모<textarea name="memo" rows="3" placeholder="예약 번호, 이동 방법 등"></textarea></label>
   <div class="dlg-acts"><button type="button" class="btn ghost" data-close>취소</button><button class="btn" value="ok">저장</button></div>
 </form></dialog>
@@ -154,6 +159,7 @@ footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px
   <h2 id="dlgPlaceTitle">장소 추가</h2>
   <label>이름<input name="name" required placeholder="예: 츠키지 장외시장"></label>
   <div class="two"><label>분류<select name="cat"></select></label><label>지역<input name="area" placeholder="예: 긴자"></label></div>
+  <label>구글 지도 링크<input name="link" type="url" inputmode="url" placeholder="구글 지도에서 공유 → 링크 복사 후 붙여넣기"></label>
   <label>메모<textarea name="memo" rows="3" placeholder="먹고 싶은 메뉴, 영업시간 등"></textarea></label>
   <div class="dlg-acts"><button type="button" class="btn ghost" data-close>취소</button><button class="btn" value="ok">저장</button></div>
 </form></dialog>
@@ -162,6 +168,18 @@ footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px
   <h2>일정에 넣기</h2>
   <div class="two"><label>날짜<select name="day"></select></label><label>시간<input type="time" name="time"></label></div>
   <div class="dlg-acts"><button type="button" class="btn ghost" data-close>취소</button><button class="btn" value="ok">넣기</button></div>
+</form></dialog>
+
+<dialog id="dlgFlight"><form method="dialog" id="fFlight">
+  <h2>항공편 수정</h2>
+  <label>항공사<input name="airline" placeholder="예: 전일본공수 (NH)"></label>
+  <strong style="font-size:15px">가는 편</strong>
+  <div class="two"><label>출발 공항<input name="outFrom" placeholder="GMP"></label><label>도착 공항<input name="outTo" placeholder="HND"></label></div>
+  <div class="two"><label>날짜<input type="date" name="outDate"></label><label>출발 시간<input type="time" name="outTime"></label></div>
+  <strong style="font-size:15px">오는 편</strong>
+  <div class="two"><label>출발 공항<input name="backFrom" placeholder="HND"></label><label>도착 공항<input name="backTo" placeholder="GMP"></label></div>
+  <div class="two"><label>날짜<input type="date" name="backDate"></label><label>출발 시간<input type="time" name="backTime"></label></div>
+  <div class="dlg-acts"><button type="button" class="btn ghost" data-close>취소</button><button class="btn" value="ok">저장</button></div>
 </form></dialog>
 
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undo">되돌리기</button></div>
@@ -177,6 +195,11 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const mapUrl=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+const safeLink=u=>{u=String(u||'').trim();return /^https?:\/\/[^\s"<>]+$/i.test(u)?u:''};
+const AP={GMP:'김포',ICN:'인천',HND:'하네다',NRT:'나리타',PUS:'김해',CJU:'제주'};
+const FLIGHT0={airline:'',outFrom:'GMP',outTo:'HND',outDate:'2026-12-03',outTime:'07:45',backFrom:'HND',backTo:'GMP',backDate:'2026-12-05',backTime:''};
+const flight=()=>({...FLIGHT0,...((rows.find(r=>r.kind==='meta'&&r.id==='flight')||{}).data||{})});
+function dlabel(s){if(!s)return '';const d=new Date(s+'T00:00:00');return (d.getMonth()+1)+'.'+d.getDate()+' ('+WD[d.getDay()]+')'}
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 
@@ -203,15 +226,18 @@ function renderTabs(){const ks=dayKeys();if(!ks.includes(cur))cur=ks[0];
   $('#tabs').innerHTML=ks.map((k,i)=>{const l=label(k);return `<button class="tab" role="tab" id="tab-${k}" aria-selected="${k===cur}" data-k="${k}"><small>Day ${i+1} · ${events(k).length}개</small><strong>${l.md} (${l.wd})</strong></button>`}).join('')}
 function renderDay(){const k=cur,l=label(k),items=events(k),i=dayKeys().indexOf(k);
   $('#day').innerHTML=`<div class="dayhead"><h2>Day ${i+1} · ${l.md} ${l.wd}요일</h2><button class="btn" id="addItem">+ 일정 추가</button></div>`+
-  (items.length?`<ol class="tl">${items.map(({id,data:it})=>`<li><div class="t ${it.time?'':'none'}">${it.time?esc(it.time):'시간 미정'}</div><div><h3>${esc(it.title)}</h3>${it.place?`<a class="where" href="${mapUrl(it.place)}" target="_blank" rel="noopener">지도에서 보기 · ${esc(it.place)}</a>`:''}${it.memo?`<p>${esc(it.memo)}</p>`:''}</div><div class="acts"><button class="ib" data-edit="${esc(id)}">수정</button><button class="ib" data-del="${esc(id)}">삭제</button></div></li>`).join('')}</ol>`
+  (items.length?`<ol class="tl">${items.map(({id,data:it})=>`<li><div class="t ${it.time?'':'none'}">${it.time?esc(it.time):'시간 미정'}</div><div><h3>${esc(it.title)}</h3>${safeLink(it.link)?`<a class="where" href="${esc(safeLink(it.link))}" target="_blank" rel="noopener">구글 지도 · ${esc(it.place||'링크 열기')}</a>`:it.place?`<span class="where txt">${esc(it.place)}</span> <a class="where" href="${mapUrl(it.place)}" target="_blank" rel="noopener">(검색)</a>`:''}${it.memo?`<p>${esc(it.memo)}</p>`:''}</div><div class="acts"><button class="ib" data-edit="${esc(id)}">수정</button><button class="ib" data-del="${esc(id)}">삭제</button></div></li>`).join('')}</ol>`
   :`<div class="empty">아직 일정이 없어요. 아래 ‘가고 싶은 곳’에서 넣거나 직접 추가해 보세요.</div>`)}
 function renderFilters(){const ps=places(),counts={전체:ps.length};CATS.forEach(c=>counts[c]=ps.filter(p=>p.data.cat===c).length);
   $('#filters').innerHTML=['전체',...CATS].filter(c=>c==='전체'||counts[c]).map(c=>`<button class="chip" aria-pressed="${c===filter}" data-f="${c}">${c} ${counts[c]}</button>`).join('')}
 function renderPlaces(){const q=query.trim().toLowerCase(),all=places();
   const list=all.filter(({data:p})=>(filter==='전체'||p.cat===filter)&&(!q||(p.name+' '+(p.area||'')+' '+(p.memo||'')).toLowerCase().includes(q)));
-  $('#places').innerHTML=list.length?list.map(({id,data:p})=>`<article class="panel place ${p.done?'done':''}"><div class="top"><h3>${esc(p.name)}</h3><span class="tag">${esc(p.cat)}</span></div>${p.area?`<div style="font-size:14px">${esc(p.area)}</div>`:''}${p.memo?`<p>${esc(p.memo)}</p>`:''}<div class="bottom"><a class="map" href="${mapUrl(p.name+' '+(p.area||'')+' 東京')}" target="_blank" rel="noopener">지도</a><button class="ib" data-sched="${esc(id)}">일정에 넣기</button><button class="ib" data-done="${esc(id)}">${p.done?'안 간 걸로':'다녀옴'}</button><button class="ib" data-pedit="${esc(id)}">수정</button><button class="ib" data-pdel="${esc(id)}">삭제</button></div></article>`).join('')
+  $('#places').innerHTML=list.length?list.map(({id,data:p})=>`<article class="panel place ${p.done?'done':''}"><div class="top"><h3>${esc(p.name)}</h3><span class="tag">${esc(p.cat)}</span></div>${p.area?`<div style="font-size:14px">${esc(p.area)}</div>`:''}${p.memo?`<p>${esc(p.memo)}</p>`:''}<div class="bottom"><a class="map" href="${esc(safeLink(p.link)||mapUrl(p.name+' '+(p.area||'')+' 東京'))}" target="_blank" rel="noopener">${safeLink(p.link)?'구글 지도':'지도 검색'}</a><button class="ib" data-sched="${esc(id)}">일정에 넣기</button><button class="ib" data-done="${esc(id)}">${p.done?'안 간 걸로':'다녀옴'}</button><button class="ib" data-pedit="${esc(id)}">수정</button><button class="ib" data-pdel="${esc(id)}">삭제</button></div></article>`).join('')
   :`<div class="empty" style="grid-column:1/-1">${all.length?'조건에 맞는 장소가 없어요.':'가고 싶은 곳을 추가해 보세요.'}</div>`}
-function render(){renderTabs();renderDay();renderFilters();renderPlaces()}
+function leg(t,from,to,date,time){return `<div class="leg"><div><div class="code">${esc(from)}</div><div class="sm">${esc(AP[from]||'')}</div></div><div class="arrow"></div><div style="text-align:right"><div class="code">${esc(to)}</div><div class="sm">${esc(AP[to]||'')}</div></div></div><div class="when">${t} · ${esc(dlabel(date))}${time?`<b>${esc(time)}</b> 출발`:' · 시간 미정'}</div>`}
+function renderTicket(){const f=flight();
+  $('#ticket').innerHTML=`<div class="air"><b>${esc(f.airline||'항공편')}</b><span class="edit">눌러서 수정</span></div>`+leg('가는 편',f.outFrom,f.outTo,f.outDate,f.outTime)+'<hr>'+leg('오는 편',f.backFrom,f.backTo,f.backDate,f.backTime)}
+function render(){renderTicket();renderTabs();renderDay();renderFilters();renderPlaces()}
 
 function setStatus(t){$('#status').textContent=t}
 function toast(m,undoable){$('#toastMsg').textContent=m;$('#undo').hidden=!undoable;$('#toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('show'),4000)}
@@ -238,23 +264,23 @@ async function refresh(force){
 // dialogs
 let editId=null,editPid=null,schedPid=null;
 function openItem(r){editId=r?r.id:null;const f=$('#fItem').elements,it=r?r.data:{};$('#dlgItemTitle').textContent=r?'일정 수정':'일정 추가';
-  f.time.value=it.time||'';f.title.value=it.title||'';f.place.value=it.place||'';f.memo.value=it.memo||'';$('#dlgItem').showModal();f.title.focus()}
+  f.time.value=it.time||'';f.title.value=it.title||'';f.place.value=it.place||'';f.link.value=it.link||'';f.memo.value=it.memo||'';$('#dlgItem').showModal();f.title.focus()}
 function openPlace(r){editPid=r?r.id:null;const f=$('#fPlace').elements,p=r?r.data:{};$('#dlgPlaceTitle').textContent=r?'장소 수정':'장소 추가';
-  f.name.value=p.name||'';f.cat.value=p.cat||(filter!=='전체'?filter:'관광');f.area.value=p.area||'';f.memo.value=p.memo||'';$('#dlgPlace').showModal();f.name.focus()}
+  f.name.value=p.name||'';f.cat.value=p.cat||(filter!=='전체'?filter:'관광');f.area.value=p.area||'';f.link.value=p.link||'';f.memo.value=p.memo||'';$('#dlgPlace').showModal();f.name.focus()}
 $('#fPlace').elements.cat.innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
 
 $('#fItem').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements;
   const old=editId?find(editId):null;
-  const d={day:old?old.data.day:cur,time:f.time.value,title:f.title.value.trim(),place:f.place.value.trim(),memo:f.memo.value.trim()};if(!d.title){e.preventDefault();return}
+  const d={day:old?old.data.day:cur,time:f.time.value,title:f.title.value.trim(),place:f.place.value.trim(),link:safeLink(f.link.value),memo:f.memo.value.trim()};if(!d.title){e.preventDefault();return}
   apply([{op:'put',id:editId||uid(),kind:'event',data:d}],editId?'일정을 수정했어요':'일정을 추가했어요',true)});
 $('#fPlace').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements;
   const old=editPid?find(editPid):null;
-  const d={name:f.name.value.trim(),cat:f.cat.value,area:f.area.value.trim(),memo:f.memo.value.trim(),done:old?!!old.data.done:false,order:old?old.data.order:Date.now()};if(!d.name){e.preventDefault();return}
+  const d={name:f.name.value.trim(),cat:f.cat.value,area:f.area.value.trim(),link:safeLink(f.link.value),memo:f.memo.value.trim(),done:old?!!old.data.done:false,order:old?old.data.order:Date.now()};if(!d.name){e.preventDefault();return}
   apply([{op:'put',id:editPid||uid(),kind:'place',data:d}],editPid?'장소를 수정했어요':'장소를 추가했어요',true)});
 $('#fAdd').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements,r=find(schedPid);if(!r)return;const p=r.data;
   cur=f.day.value;lsSet('tokyo-day',cur);
-  apply([{op:'put',id:uid(),kind:'event',data:{day:cur,time:f.time.value,title:p.name,place:p.name+(p.area?' '+p.area:''),memo:p.memo||''}}],label(cur).md+' 일정에 넣었어요',true)});
+  apply([{op:'put',id:uid(),kind:'event',data:{day:cur,time:f.time.value,title:p.name,place:p.name,link:safeLink(p.link),memo:p.memo||''}}],label(cur).md+' 일정에 넣었어요',true)});
 
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;cur=b.dataset.k;lsSet('tokyo-day',cur);renderTabs();renderDay()});
 $('#tabs').addEventListener('keydown',e=>{if(!/Arrow(Left|Right)/.test(e.key))return;const ks=dayKeys();let i=ks.indexOf(cur)+(e.key==='ArrowRight'?1:-1);i=(i+ks.length)%ks.length;cur=ks[i];renderTabs();renderDay();$('#tab-'+cur).focus()});
@@ -270,6 +296,11 @@ $('#places').addEventListener('click',e=>{const ds=e.target.dataset;
 $('#filters').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;filter=b.dataset.f;renderFilters();renderPlaces()});
 $('#q').addEventListener('input',e=>{query=e.target.value;renderPlaces()});
 $('#addPlace').addEventListener('click',()=>openPlace(null));
+const FK=['airline','outFrom','outTo','outDate','outTime','backFrom','backTo','backDate','backTime'];
+$('#ticket').addEventListener('click',()=>{const f=$('#fFlight').elements,v=flight();FK.forEach(k=>f[k].value=v[k]||'');$('#dlgFlight').showModal()});
+$('#fFlight').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements,d={};
+  FK.forEach(k=>{let x=f[k].value.trim();if(/From|To/.test(k))x=x.toUpperCase();d[k]=x});
+  apply([{op:'put',id:'flight',kind:'meta',data:d}],'항공편을 수정했어요',true)});
 $('#undo').addEventListener('click',()=>{if(!undoOps)return;const ops=undoOps;undoOps=null;apply(ops,'되돌렸어요',false)});
 $('#share').addEventListener('click',async()=>{const link=location.href.split('#')[0]+'#'+code;
   try{await navigator.clipboard.writeText(link);toast('공유 링크를 복사했어요',false)}catch(e){toast('복사하지 못했어요 · 주소창의 링크를 그대로 보내 주세요',false)}});
