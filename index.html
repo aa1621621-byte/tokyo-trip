@@ -59,6 +59,11 @@ main{margin-top:calc(-1 * clamp(40px,5vw,60px))}
 ol.tl{list-style:none;margin:0;padding:0}
 .tl li{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:14px;padding:14px 0;border-top:1px solid var(--line);align-items:start}
 .tl li:first-child{border-top:0}
+.tl li.route{display:block;padding:2px 0 2px 98px;border-top:0}
+.tl li.route+li{border-top:0}
+.tl .rt{display:inline-flex;align-items:center;gap:6px;min-height:40px;font-size:14px;color:var(--teal);text-decoration:none;border:1px dashed var(--line);border-radius:999px;padding:0 14px}
+.tl .rt:hover{border-color:var(--teal)}
+.tl .addr{font-size:13px;color:var(--mute);margin-top:2px}
 .tl .t{font-family:"Do Hyeon",sans-serif;font-size:30px;line-height:1;color:var(--red);white-space:nowrap;padding-top:2px}
 .tl .t.none{font-size:15px;color:var(--mute);font-family:inherit;padding-top:6px}
 .tl h3{margin:0;font-size:18px;font-weight:700}
@@ -103,7 +108,7 @@ label{display:grid;gap:4px;font-size:14px;color:var(--mute)}
 .status{font-size:13px;opacity:.85;margin-top:8px}
 footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px}
 @media(max-width:700px){header .wrap{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.tl li{grid-template-columns:62px minmax(0,1fr)}.tl .t{font-size:24px}.tl .acts{grid-column:2}.two{grid-template-columns:minmax(0,1fr)}.search{max-width:none}}
+@media(max-width:600px){.tl li.route{padding-left:76px}.tl li{grid-template-columns:62px minmax(0,1fr)}.tl .t{font-size:24px}.tl .acts{grid-column:2}.two{grid-template-columns:minmax(0,1fr)}.search{max-width:none}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
@@ -151,6 +156,7 @@ footer{color:var(--mute);font-size:13px;text-align:center;padding:24px 16px 40px
   <div class="two"><label>시간<input type="time" name="time"></label><label>할 일<input name="title" required placeholder="예: 아사쿠사 산책"></label></div>
   <label>장소 이름<input name="place" placeholder="예: 센소지"></label>
   <label>구글 지도 링크<input name="link" type="url" inputmode="url" placeholder="구글 지도에서 공유 → 링크 복사 후 붙여넣기"></label>
+  <label>주소 (경로 계산용, 선택)<input name="addr" placeholder="예: 2 Chome-28-7 Dogenzaka, Shibuya, Tokyo"></label>
   <label>메모<textarea name="memo" rows="3" placeholder="예약 번호, 이동 방법 등"></textarea></label>
   <div class="dlg-acts"><button type="button" class="btn ghost" data-close>취소</button><button class="btn" value="ok">저장</button></div>
 </form></dialog>
@@ -196,6 +202,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const mapUrl=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
 const safeLink=u=>{u=String(u||'').trim();return /^https?:\/\/[^\s"<>]+$/i.test(u)?u:''};
+const loc=it=>(it.addr||'').trim()||((it.place||it.title||'').trim()+' Tokyo');
+const dirUrl=(a,b)=>'https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(loc(a))+'&destination='+encodeURIComponent(loc(b))+'&travelmode=transit';
 const AP={GMP:'김포',ICN:'인천',HND:'하네다',NRT:'나리타',PUS:'김해',CJU:'제주'};
 const FLIGHT0={airline:'',outFrom:'GMP',outTo:'HND',outDate:'2026-12-03',outTime:'07:45',backFrom:'HND',backTo:'GMP',backDate:'2026-12-05',backTime:''};
 const flight=()=>({...FLIGHT0,...((rows.find(r=>r.kind==='meta'&&r.id==='flight')||{}).data||{})});
@@ -226,7 +234,7 @@ function renderTabs(){const ks=dayKeys();if(!ks.includes(cur))cur=ks[0];
   $('#tabs').innerHTML=ks.map((k,i)=>{const l=label(k);return `<button class="tab" role="tab" id="tab-${k}" aria-selected="${k===cur}" data-k="${k}"><small>Day ${i+1} · ${events(k).length}개</small><strong>${l.md} (${l.wd})</strong></button>`}).join('')}
 function renderDay(){const k=cur,l=label(k),items=events(k),i=dayKeys().indexOf(k);
   $('#day').innerHTML=`<div class="dayhead"><h2>Day ${i+1} · ${l.md} ${l.wd}요일</h2><button class="btn" id="addItem">+ 일정 추가</button></div>`+
-  (items.length?`<ol class="tl">${items.map(({id,data:it})=>`<li><div class="t ${it.time?'':'none'}">${it.time?esc(it.time):'시간 미정'}</div><div><h3>${esc(it.title)}</h3>${safeLink(it.link)?`<a class="where" href="${esc(safeLink(it.link))}" target="_blank" rel="noopener">구글 지도 · ${esc(it.place||'링크 열기')}</a>`:it.place?`<span class="where txt">${esc(it.place)}</span> <a class="where" href="${mapUrl(it.place)}" target="_blank" rel="noopener">(검색)</a>`:''}${it.memo?`<p>${esc(it.memo)}</p>`:''}</div><div class="acts"><button class="ib" data-edit="${esc(id)}">수정</button><button class="ib" data-del="${esc(id)}">삭제</button></div></li>`).join('')}</ol>`
+  (items.length?`<ol class="tl">${items.map(({id,data:it},n)=>(n?`<li class="route"><a class="rt" href="${esc(dirUrl(items[n-1].data,it))}" target="_blank" rel="noopener">↓ 경로 보기 · 대중교통</a></li>`:'')+`<li><div class="t ${it.time?'':'none'}">${it.time?esc(it.time):'시간 미정'}</div><div><h3>${esc(it.title)}</h3>${safeLink(it.link)?`<a class="where" href="${esc(safeLink(it.link))}" target="_blank" rel="noopener">구글 지도 · ${esc(it.place||'링크 열기')}</a>`:it.place?`<span class="where txt">${esc(it.place)}</span> <a class="where" href="${mapUrl(it.place)}" target="_blank" rel="noopener">(검색)</a>`:''}${it.addr?`<div class="addr">${esc(it.addr)}</div>`:''}${it.memo?`<p>${esc(it.memo)}</p>`:''}</div><div class="acts"><button class="ib" data-edit="${esc(id)}">수정</button><button class="ib" data-del="${esc(id)}">삭제</button></div></li>`).join('')}</ol>`
   :`<div class="empty">아직 일정이 없어요. 아래 ‘가고 싶은 곳’에서 넣거나 직접 추가해 보세요.</div>`)}
 function renderFilters(){const ps=places(),counts={전체:ps.length};CATS.forEach(c=>counts[c]=ps.filter(p=>p.data.cat===c).length);
   $('#filters').innerHTML=['전체',...CATS].filter(c=>c==='전체'||counts[c]).map(c=>`<button class="chip" aria-pressed="${c===filter}" data-f="${c}">${c} ${counts[c]}</button>`).join('')}
@@ -264,7 +272,7 @@ async function refresh(force){
 // dialogs
 let editId=null,editPid=null,schedPid=null;
 function openItem(r){editId=r?r.id:null;const f=$('#fItem').elements,it=r?r.data:{};$('#dlgItemTitle').textContent=r?'일정 수정':'일정 추가';
-  f.time.value=it.time||'';f.title.value=it.title||'';f.place.value=it.place||'';f.link.value=it.link||'';f.memo.value=it.memo||'';$('#dlgItem').showModal();f.title.focus()}
+  f.time.value=it.time||'';f.title.value=it.title||'';f.place.value=it.place||'';f.link.value=it.link||'';f.addr.value=it.addr||'';f.memo.value=it.memo||'';$('#dlgItem').showModal();f.title.focus()}
 function openPlace(r){editPid=r?r.id:null;const f=$('#fPlace').elements,p=r?r.data:{};$('#dlgPlaceTitle').textContent=r?'장소 수정':'장소 추가';
   f.name.value=p.name||'';f.cat.value=p.cat||(filter!=='전체'?filter:'관광');f.area.value=p.area||'';f.link.value=p.link||'';f.memo.value=p.memo||'';$('#dlgPlace').showModal();f.name.focus()}
 $('#fPlace').elements.cat.innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
@@ -272,7 +280,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',
 
 $('#fItem').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements;
   const old=editId?find(editId):null;
-  const d={day:old?old.data.day:cur,time:f.time.value,title:f.title.value.trim(),place:f.place.value.trim(),link:safeLink(f.link.value),memo:f.memo.value.trim()};if(!d.title){e.preventDefault();return}
+  const d={day:old?old.data.day:cur,time:f.time.value,title:f.title.value.trim(),place:f.place.value.trim(),link:safeLink(f.link.value),addr:f.addr.value.trim(),memo:f.memo.value.trim()};if(!d.title){e.preventDefault();return}
   apply([{op:'put',id:editId||uid(),kind:'event',data:d}],editId?'일정을 수정했어요':'일정을 추가했어요',true)});
 $('#fPlace').addEventListener('submit',e=>{if(e.submitter?.value!=='ok')return;const f=e.target.elements;
   const old=editPid?find(editPid):null;
